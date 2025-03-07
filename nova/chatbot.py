@@ -33,13 +33,20 @@ class Nova:
             file_path = os.path.join(script_dir, 'data', 'responses.json')
             
             with open(file_path, 'r', encoding='utf-8') as file:
-                return json.load(file)
+                data = json.load(file)
+                return data.get("responses", {})
         except Exception as e:
             print(f"Kunde inte ladda svar från fil: {e}")
             # Returnera ett enkelt standardsvar om filen inte kunde laddas
             return {
-                "greetings": {"hej": "Hej!"},
-                "fallback": ["Jag förstår inte."]
+                "greetings": {
+                    "phrases": ["hej"],
+                    "responses": ["Hej!"]
+                },
+                "fallback": {
+                    "phrases": [],
+                    "responses": ["Jag förstår inte."]
+                }
             }
     
     def get_response(self, user_input):
@@ -75,16 +82,26 @@ class Nova:
             return self.web_search.search(user_input)
         
         # Om inte ett kommando eller en sökning, fortsätt med vanlig svarshantering
-        # Gå igenom varje kategori av svar
-        for category in self.responses:
+        # Gå igenom varje kategori av svar med den nya strukturen
+        for category, content in self.responses.items():
             # Undanta fallback-kategorin som hanteras separat
             if category == "fallback":
                 continue
                 
-            # Kontrollera om input matchar något nyckelord i denna kategori
-            for keyword, response in self.responses[category].items():
-                if keyword in user_input:
-                    return response
+            # Kontrollera om input matchar någon fras i denna kategori
+            phrases = content.get("phrases", [])
+            for phrase in phrases:
+                if phrase in user_input:
+                    # Välj ett slumpmässigt svar från denna kategori
+                    responses_list = content.get("responses", [])
+                    if responses_list:
+                        return random.choice(responses_list)
         
         # Om inget matchade, välj ett slumpmässigt fallback-svar
-        return random.choice(self.responses["fallback"])
+        if "fallback" in self.responses:
+            fallback_responses = self.responses["fallback"].get("responses", [])
+            if fallback_responses:
+                return random.choice(fallback_responses)
+            
+        # Om ingen fallback-kategori finns, använd ett standardsvar
+        return "Jag förstår inte riktigt. Kan du förklara på ett annat sätt?"

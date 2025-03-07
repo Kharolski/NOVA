@@ -1,28 +1,45 @@
 {
-    "greetings": {
-        "hej": "Hej! Jag är Nova, din chatbot-assistent.",
-        "hallå": "Hallå där! Jag är Nova. Hur kan jag hjälpa dig?",
-        "god morgon": "God morgon! Hur kan jag hjälpa dig idag?",
-        "god kväll": "God kväll! Hur kan jag vara till tjänst?"
-    },
-    "status": {
-        "hur mår du": "Jag mår bra, tack! Hur kan jag hjälpa dig?",
-        "hur går det": "Det går bra med mig! Jag är redo att hjälpa dig."
-    },
-    "capabilities": {
-        "vad kan du göra": "Just nu kan jag: \n- Svara på enkla frågor\n- Söka information på webben\n- Hjälpa dig med grundläggande uppgifter",
-        "vad kan du": "Jag kan svara på frågor, söka på webben och hjälpa dig med enklare uppgifter.",
-        "hjälp": "Jag kan hjälpa med följande:\n- Svara på enkla frågor\n- Besvara 'vad är...' och 'vem är...' frågor via webbsökning\n- Prova kommandot 'sök på [ämne]' för att få information från webben"
-    },
-    "farewell": {
-        "hejdå": "Hejdå! Tack för att du pratade med mig.",
-        "adjö": "Adjö! Hoppas vi ses snart igen.",
-        "vi ses": "Vi ses! Ha en bra dag."
-    },
-    "fallback": [
-        "Jag förstår inte riktigt. Kan du omformulera frågan?",
-        "Hmm, jag är inte säker på vad du menar. Kan du förklara på ett annat sätt?",
-        "Jag kunde inte tolka det. Prova att ställa en enklare fråga.",
-        "Jag jobbar fortfarande på att bli smartare. Kan du fråga något annat?"
-    ]
+    "responses": {
+        "greetings": {
+            "phrases": ["hej", "hallå", "tjena", "god morgon", "god kväll", "goddag"],
+            "responses": [
+                "Hej! Jag är Nova, din chatbot-assistent.",
+                "Hallå där! Jag är Nova. Hur kan jag hjälpa dig?",
+                "God morgon! Hur kan jag hjälpa dig idag?",
+                "God kväll! Hur kan jag vara till tjänst?"
+            ]
+        },
+        "status": {
+            "phrases": ["hur mår du", "hur går det", "hur är läget", "läget"],
+            "responses": [
+                "Jag mår bra, tack! Hur kan jag hjälpa dig?",
+                "Det går bra med mig! Jag är redo att hjälpa dig."
+            ]
+        },
+        "capabilities": {
+            "phrases": ["vad kan du göra", "vad kan du", "vilka funktioner har du", "dina funktioner", "hjälp mig"],
+            "responses": [
+                "Just nu kan jag: \n- Svara på enkla frågor\n- Söka information på webben\n- Hjälpa dig med grundläggande uppgifter",
+                "Jag kan svara på frågor, söka på webben och hjälpa dig med enklare uppgifter.",
+                "Jag kan hjälpa med följande:\n- Svara på enkla frågor\n- Besvara 'vad är...' och 'vem är...' frågor via webbsökning\n- Prova kommandot 'sök på [ämne]' för att få information från webben"
+            ]
+        },
+        "farewell": {
+            "phrases": ["hejdå", "adjö", "vi ses", "måste gå", "farväl", "goodbye"],
+            "responses": [
+                "Hejdå! Tack för att du pratade med mig.",
+                "Adjö! Hoppas vi ses snart igen.",
+                "Vi ses! Ha en bra dag."
+            ]
+        },
+        "fallback": {
+            "phrases": [],
+            "responses": [
+                "Jag förstår inte riktigt. Kan du omformulera frågan?",
+                "Hmm, jag är inte säker på vad du menar. Kan du förklara på ett annat sätt?",
+                "Jag kunde inte tolka det. Prova att ställa en enklare fråga.",
+                "Jag jobbar fortfarande på att bli smartare. Kan du fråga något annat?"
+            ]
+        }
+    }
 }

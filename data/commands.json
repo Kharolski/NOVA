@@ -1,0 +1,61 @@
+{
+    "commands": {
+        "activate": {
+            "phrases": [
+                "nova är du här",
+                "nova är du där", 
+                "hej nova",
+                "aktivera röststyrning",
+                "nova lyssna",
+                "nova vakna"
+            ],
+            "action": "activate_voice",
+            "response": "{name} lyssnar på dig nu."
+        },
+        "deactivate": {
+            "phrases": [
+                "hej då nova",
+                "stäng av röststyrning", 
+                "nova stäng av",
+                "sluta lyssna",
+                "deaktivera röststyrning"
+            ],
+            "action": "deactivate_voice",
+            "response": "Röststyrning avstängd."
+        },
+        "time": {
+            "phrases": [
+                "vad är klockan", 
+                "hur mycket är klockan", 
+                "visa tid"
+            ],
+            "action": "show_time",
+            "response": "Klockan är {time}."
+        },
+        "clear": {
+            "phrases": [
+                "rensa chatten", 
+                "rensa historik", 
+                "ta bort meddelanden"
+            ],
+            "action": "clear_chat",
+            "response": "Chatten har rensats."
+        },
+        "help": {
+            "phrases": [
+                "visa hjälp", 
+                "hjälp mig", 
+                "vad kan du göra"
+            ],
+            "action": "show_help",
+            "response": "Här är några kommandon du kan använda:\n- 'Vad är klockan' för att visa tiden\n- 'Stäng av röststyrning' för att avsluta röststyrning\n- 'Rensa chatten' för att rensa historiken\n- Du kan också ställa allmänna frågor till mig!"
+        },
+        "exit": {
+            "phrases": [ 
+                "avsluta programmet"
+            ],
+            "action": "exit_app",
+            "response": "Avslutar programmet. Hej då!"
+        }
+    }
+}
