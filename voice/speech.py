@@ -7,6 +7,7 @@ from gtts import gTTS
 import os
 import pygame
 import time
+import re
 
 class VoiceSpeaker:
     """
@@ -33,6 +34,54 @@ class VoiceSpeaker:
             
         # Rensa gamla filer vid start
         self.cleanup_temp_files()
+    
+    def improve_speech_text(self, text):
+        """
+        Förbättrar text för att ge mer naturlig röstuppläsning.
+        
+        Args:
+            text (str): Originaltexten som ska förbättras
+            
+        Returns:
+            str: Förbättrad text för mer naturligt tal
+        """
+        # Ord som uttalas konstigt - ersätt med bättre fonetiska versioner
+        replacements = {
+            "AI": "A I",
+            "chatbot": "chatt bått",
+            "Nova": "Nåva",  # Om uttalsproblem finns
+            "URL": "U R L",
+            "HTTP": "H T T P",
+            "HTML": "H T M L",
+            "www": "w w w",
+            ".com": "dått cåmm",
+            "plugin": "plugg in",
+            "UI": "U I",
+            "GUI": "G U I",
+            "API": "A P I",
+        }
+        
+        # Tillämpa ersättningar
+        for word, replacement in replacements.items():
+            # Använd regex för att se till att vi bara ersätter hela ord
+            text = re.sub(r'\b' + re.escape(word) + r'\b', replacement, text)
+        
+        # Lägg till pauser för mer naturligt tal genom att modifiera punktuation
+        text = text.replace(". ", "... ")     # Längre paus efter meningar
+        text = text.replace("? ", "?... ")    # Längre paus efter frågor
+        text = text.replace("! ", "!... ")    # Längre paus efter utrop
+        text = text.replace(", ", ",.. ")     # Kort paus vid kommatecken
+        text = text.replace(": ", ":.. ")     # Kort paus vid kolon
+        
+        # Dela upp långa siffror för bättre uppläsning
+        # T.ex. ändra "12345" till "1 2 3 4 5"
+        def space_digits(match):
+            digits = match.group(0)
+            return " ".join(digits)
+            
+        text = re.sub(r'\b\d{4,}\b', space_digits, text)
+        
+        return text
     
     def cleanup_temp_files(self):
         """
@@ -63,12 +112,15 @@ class VoiceSpeaker:
             print(f"Läser upp: {text}")
             self.is_speaking = True
             
+            # Förbättra texten för mer naturligt tal
+            improved_text = self.improve_speech_text(text)
+            
             # Skapa ett unikt filnamn i Nova-mappen
             timestamp = int(time.time())
             temp_filename = os.path.join(self.nova_temp_dir, f"nova_speech_{timestamp}.mp3")
             
             # Använd Google TTS för att konvertera text till tal
-            tts = gTTS(text=text, lang=self.language, slow=False)
+            tts = gTTS(text=improved_text, lang=self.language, slow=False)
             tts.save(temp_filename)
             
             # Spela upp ljudfilen

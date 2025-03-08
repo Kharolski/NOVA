@@ -5,6 +5,7 @@ Modul för hantering av röstkommandon baserade på commands.json.
 import json
 import os
 import datetime
+import re
 
 class CommandHandler:
     """
@@ -50,15 +51,32 @@ class CommandHandler:
             text (str): Texten att kontrollera
         
         Returns:
-            tuple: (kommando-typ, svar) om en matchning hittades, annars (None, None)
+            tuple: (kommando-typ, svar, extra_data) om en matchning hittades, 
+                annars (None, None, None)
         """
         if not text:
-            return None, None
+            return None, None, None
             
         # Konvertera till lower case för enklare jämförelse
         text = text.lower()
         
         print(f"Söker efter kommando i texten: '{text}'")
+        
+        # Kontrollera om detta är ett webbplatskommando
+        if any(phrase in text for phrase in self.commands.get('open_website', {}).get('phrases', [])):
+            website = self.extract_website(text)
+            if website:
+                response = self.commands['open_website']['response'].replace("{website}", website)
+                response = response.replace("{name}", self.chatbot_name)
+                return "open_website", response, {"website": website}
+        
+        # Kontrollera om detta är ett applikationskommando
+        if any(phrase in text for phrase in self.commands.get('open_application', {}).get('phrases', [])):
+            app_name = self.extract_application(text)
+            if app_name:
+                response = self.commands['open_application']['response'].replace("{app}", app_name)
+                response = response.replace("{name}", self.chatbot_name)
+                return "open_application", response, {"app_name": app_name}
         
         # Gå igenom alla kommandon
         for command_type, command_data in self.commands.items():
@@ -81,8 +99,53 @@ class CommandHandler:
                     if action == "exit_app":
                         print("Exit-kommando identifierat - programmet kommer att avslutas")
                     
-                    return action, response
+                    return action, response, None
         
         # Inget kommando matchade
         print("  Inget kommando matchade")
-        return None, None
+        return None, None, None
+    
+    def extract_website(self, text):
+        """
+        Extraherar webbadress från användarens text.
+        
+        Args:
+            text (str): Användarens text
+        
+        Returns:
+            str: Extraherad webbadress eller None
+        """
+        # Leta efter ord efter "gå till", "öppna sidan", etc.
+        patterns = [
+            r'(?:gå till|öppna sidan|besök hemsidan|öppna webbplatsen) ([a-zA-Z0-9.-]+\.[a-zA-Z]{2,})',
+            r'(?:gå till|öppna sidan|besök hemsidan|öppna webbplatsen) ([a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/\S*)'
+        ]
+        
+        for pattern in patterns:
+            match = re.search(pattern, text.lower())
+            if match:
+                return match.group(1)
+        
+        return None
+
+    def extract_application(self, text):
+        """
+        Extraherar applikationsnamn från användarens text.
+        
+        Args:
+            text (str): Användarens text
+        
+        Returns:
+            str: Extraherad applikation eller None
+        """
+        patterns = [
+            r'(?:öppna|starta) ([a-zåäöA-ZÅÄÖ]+)',
+            r'(?:starta|kör) ([a-zåäöA-ZÅÄÖ]+)'
+        ]
+        
+        for pattern in patterns:
+            match = re.search(pattern, text.lower())
+            if match:
+                return match.group(1)
+        
+        return None

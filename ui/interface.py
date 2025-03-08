@@ -7,6 +7,8 @@ from tkinter import messagebox
 from voice import VoiceInterface
 import threading
 import time
+import webbrowser
+from utils.system_actions import SystemActions
 
 class GraphicalInterface:
     """
@@ -34,6 +36,7 @@ class GraphicalInterface:
         
         # Skapa röstgränssnitt
         self.voice_interface = VoiceInterface()
+        self.system_actions = SystemActions()
         
         # ========== INIT UI COMPONENTS ==========
         self.create_menu()
@@ -57,7 +60,7 @@ class GraphicalInterface:
         file_menu = tk.Menu(menubar, tearoff=0)
         file_menu.add_command(label="Rensa chathistorik", command=self.clear_chat)
         file_menu.add_separator()
-        file_menu.add_command(label="Avsluta", command=self.exit_program)
+        file_menu.add_command(label="Avsluta", command=self.exit_application)
         
         # Skapa en Röst-meny
         voice_menu = tk.Menu(menubar, tearoff=0)
@@ -107,12 +110,6 @@ class GraphicalInterface:
         # Avsluta programmet
         self.root.quit()
         self.root.destroy()
-
-    def exit_program(self):
-        """
-        Avslutar programmet.
-        """
-        self.exit_application()
 
     def clear_chat(self):
         """
@@ -276,6 +273,16 @@ class GraphicalInterface:
         # Om röststyrning är aktiverad, läs upp svaret
         self.voice_interface.say_response(response)
 
+    def run(self):
+        """
+        Startar det grafiska gränssnittet.
+        """
+        # Visa välkomstmeddelandet när programmet startar
+        self.display_bot_message(f"Välkommen till {self.chatbot.name}! Hur kan jag hjälpa dig idag?")
+        
+        # Starta huvudloopen
+        self.root.mainloop()
+
     # ---------------------------------------------------------------
     # Input Functions
     # ---------------------------------------------------------------
@@ -351,7 +358,9 @@ class GraphicalInterface:
         if isinstance(response, dict):
             # Om det är ett dictionary, kontrollera om det har en action
             if response.get("action"):
-                self.handle_action(response["action"], response["text"])
+                # Skicka med extra_data om det finns
+                extra_data = response.get("extra_data")
+                self.handle_action(response["action"], response["text"], extra_data)
             else:
                 # Visa chatbotens svar i chatten
                 self.display_bot_message(response["text"])
@@ -380,9 +389,8 @@ class GraphicalInterface:
         if is_enabled:
             self.voice_button.config(text="🎤 På", bg="#FF6347")
 
-            # Om röststyrning aktiveras, läs upp ett bekräftelsemeddelande
-            self.voice_interface.say_response(f"{self.chatbot.name} lyssnar på dig nu.")
-            #self.voice_interface.say_response(f"Vad {self.chatbot.name} kan hjälpa dig med?")
+            # Om röststyrning aktiveras via knapp, läs upp ett bekräftelsemeddelande
+            self.voice_interface.say_response(f"Vad {self.chatbot.name} kan hjälpa dig medd ?")
 
             # Starta röstinmatning direkt efter en kort fördröjning
             self.root.after(400, self.activate_voice_input)  # Vänta 0.4 sekunder efter bekräftelsemeddelandet
@@ -411,40 +419,28 @@ class GraphicalInterface:
         
         if text:
             # Kontrollera om det är ett systemkommando
-            action, response = self.voice_interface.check_for_command(text)
+            action, response, extra_data = self.voice_interface.check_for_command(text)
             
             if action:
-                # Hantera olika systemkommandon
+                # Hantera specifika fall som kräver särskild hantering i röstläge
                 if action == "deactivate_voice":
                     # Stäng av röststyrning
                     self.voice_interface.voice_enabled = False
                     self.voice_button.config(text="🎤 Av", bg="#CCCCCC")
                     self.voice_interface.say_response(response)
                     return
-                elif action == "show_time":
-                    # Visa tid
-                    self.display_bot_message(response)
-                    self.voice_interface.say_response(response)
-                elif action == "clear_chat":
-                    # Visa bara meddelandet att chatten har rensats
-                    # men gör inte själva rensningen eftersom det verkar orsaka problem
-                    self.display_bot_message(response)
-                    self.voice_interface.say_response(response)
-                    # Om du senare vill implementera faktisk rensning,
-                    # behöver du identifiera rätt widget-namn för chatthistoriken
-                elif action == "show_help":
-                    # Visa hjälp
-                    self.display_bot_message(response)
-                    self.voice_interface.say_response(response)
                 elif action == "exit_app":
-                    # Avsluta programmet
+                    # Hantera avslutning (vi måste visa meddelande innan avslutning)
                     self.display_bot_message(response)
                     self.voice_interface.say_response(response)
                     self.root.after(2000, self.exit_application)
                     return
                 
-                # För andra kommandon som inte avslutar röstlyssning
-                if self.voice_interface.voice_enabled and action != "deactivate_voice":
+                # För andra kommandon, använd handle_action
+                self.handle_action(action, response, extra_data)
+                
+                # För kommandon som inte avslutar röstlyssning
+                if self.voice_interface.voice_enabled:
                     self.root.after(3000, self.activate_voice_input)
                 return
                 
@@ -474,7 +470,7 @@ class GraphicalInterface:
                     command_text = self.voice_interface.listen_for_activation()
                     if command_text:
                         # Kontrollera om det är ett kommando
-                        action, response = self.voice_interface.check_for_command(command_text)
+                        action, response, extra_data = self.voice_interface.check_for_command(command_text)
                         
                         if action == "activate_voice":
                             # Aktivera röststyrning
@@ -503,13 +499,14 @@ class GraphicalInterface:
     # ---------------------------------------------------------------
     # Command Handling Functions
     # ---------------------------------------------------------------
-    def handle_action(self, action, response_text):
+    def handle_action(self, action, response_text, extra_data=None):
         """
         Hanterar en åtgärd baserat på kommandot från chatboten.
         
         Args:
             action (str): Åtgärden som ska utföras
             response_text (str): Svartexten att visa
+            extra_data (dict, optional): Extra data för kommandot
         """
         # Visa svar i chatten
         self.display_bot_message(response_text)
@@ -527,6 +524,12 @@ class GraphicalInterface:
                 self.toggle_voice()
         elif action == "clear_chat":
             self.clear_chat()
+        elif action == "open_browser":
+            self.system_actions.open_browser()
+        elif action == "open_website" and extra_data and 'website' in extra_data:
+            self.system_actions.open_website(extra_data['website'])
+        elif action == "open_application" and extra_data and 'app_name' in extra_data:
+            self.system_actions.open_application(extra_data['app_name'])
         elif action == "show_time":
             # Tiden visas redan i svaret, inget mer behövs
             pass
@@ -534,8 +537,7 @@ class GraphicalInterface:
             # Hjälpinformationen visas redan i svaret, inget mer behövs
             pass
         elif action == "exit_app":
-            # Vänta lite och avsluta sedan
-            self.root.after(1500, self.exit_program)
+            self.exit_application()
 
     # ---------------------------------------------------------------
     # Chatbot Response Functions
@@ -549,6 +551,7 @@ class GraphicalInterface:
         """
         # Få svar från chatboten
         response = self.chatbot.get_response(user_message)
+        print(f"Svar från get_bot_response: {response}")
         
         # Ta bort "tänker"-meddelandet och visa svaret
         self.root.after(0, lambda: self.remove_thinking_and_display_response(response))
@@ -557,16 +560,13 @@ class GraphicalInterface:
         if self.chatbot.exit_requested:
             self.root.after(1500, self.exit_program)
     
- 
-    def run(self):
-        """
-        Startar det grafiska gränssnittet.
-        """
-        # Visa välkomstmeddelandet när programmet startar
-        self.display_bot_message(f"Välkommen till {self.chatbot.name}! Hur kan jag hjälpa dig idag?")
-        
-        # Starta huvudloopen
-        self.root.mainloop()
+    # ---------------------------------------------------------------
+    # Webbrowser Response Functions
+    # ---------------------------------------------------------------
+    
+
+
+    
 
     
 

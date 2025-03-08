@@ -57,19 +57,29 @@ class Nova:
             user_input (str): Användarens meddelande
             
         Returns:
-            str: Novas svar
+            str eller dict: Novas svar, antingen som sträng eller som dictionary med action-info
         """
         # Konvertera input till gemener för bättre matchning
         user_input = user_input.lower().strip()
         
-        # Först, kontrollera om input är ett kommando
-        command_response = self.command_handler.handle_command(user_input)
-        if command_response:
-            # Om kommandot är för att avsluta, markera detta
-            if "avslutar programmet" in command_response.lower():
-                self.exit_requested = True
-            return command_response
+        # Först, kontrollera om input är ett kommando med den nya metoden
+        action, response, extra_data = self.command_handler.check_command(user_input)
         
+        if action:
+            # Om vi har en action, formatera svaret korrekt
+            command_result = {
+                "action": action,
+                "text": response,
+                "extra_data": extra_data
+            }
+            
+            # Om kommandot är för att avsluta, markera detta
+            if action == "exit_app":
+                self.exit_requested = True
+                
+            return command_result
+        
+        # Resten av funktionen är oförändrad
         # Kontrollera om användaren ber om en webbsökning
         if user_input.startswith("sök på "):
             query = user_input[7:]  # Ta bort "sök på " från början

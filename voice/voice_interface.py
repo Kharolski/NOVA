@@ -97,13 +97,14 @@ class VoiceInterface:
         
     def check_for_command(self, text):
         """
-        Kontrollerar om texten innehåller ett systemkommando.
+        Kontrollerar om texten innehåller ett kommando.
         
         Args:
             text (str): Texten att kontrollera
-            
+        
         Returns:
-            tuple: (action, response) om kommando hittades, annars (None, None)
+            tuple: (action, response, extra_data) eller (None, None, None)
         """
-        # Använd CommandHandler för att kontrollera efter kommandon
-        return self.command_handler.check_command(text)
+        if self.command_handler:
+            return self.command_handler.check_command(text)
+        return None, None, None

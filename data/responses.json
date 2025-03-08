@@ -5,8 +5,8 @@
             "responses": [
                 "Hej! Jag är Nova, din chatbot-assistent.",
                 "Hallå där! Jag är Nova. Hur kan jag hjälpa dig?",
-                "God morgon! Hur kan jag hjälpa dig idag?",
-                "God kväll! Hur kan jag vara till tjänst?"
+                "Hej! Hur kan jag hjälpa dig idag?",
+                "Hej! Hur kan jag vara till tjänst?"
             ]
         },
         "status": {

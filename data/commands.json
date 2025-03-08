@@ -10,7 +10,7 @@
                 "nova vakna"
             ],
             "action": "activate_voice",
-            "response": "{name} lyssnar på dig nu."
+            "response": "Vad kan {name} hjälpa dig medd, ?"
         },
         "deactivate": {
             "phrases": [
@@ -22,15 +22,6 @@
             ],
             "action": "deactivate_voice",
             "response": "Röststyrning avstängd."
-        },
-        "time": {
-            "phrases": [
-                "vad är klockan", 
-                "hur mycket är klockan", 
-                "visa tid"
-            ],
-            "action": "show_time",
-            "response": "Klockan är {time}."
         },
         "clear": {
             "phrases": [
@@ -56,6 +47,46 @@
             ],
             "action": "exit_app",
             "response": "Avslutar programmet. Hej då!"
+        },
+        "time": {
+            "phrases": [
+                "vad är klockan", 
+                "hur mycket är klockan", 
+                "visa tid"
+            ],
+            "action": "show_time",
+            "response": "Klockan är {time}."
+        },
+        "browser": {
+            "phrases": [
+            "öppna webbläsaren", 
+            "starta webbläsaren", 
+            "öppna chrome",
+            "öppna firefox",
+            "öppna edge",
+            "surfa på nätet",
+            "öppna en webbsida"
+            ],
+            "action": "open_browser",
+            "response": "Öppnar webbläsaren."
+        },
+        "open_website": {
+            "phrases": [
+            "gå till", 
+            "öppna sidan", 
+            "besök hemsidan",
+            "öppna webbplatsen"
+            ],
+            "action": "open_website",
+            "response": "Öppnar {website}."
+        },
+        "open_application": {
+            "phrases": [
+                "öppna", 
+                "starta"
+            ],
+            "action": "open_application",
+            "response": "Öppnar {app}."
         }
     }
 }
