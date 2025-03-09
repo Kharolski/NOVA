@@ -79,6 +79,24 @@ class GraphicalInterface:
         
         # Konfigurera root att använda menyn
         self.root.config(menu=menubar)
+        
+        # Skapa en indikatorram direkt i root-fönstret
+        indicator_frame = tk.Frame(self.root, height=25)
+        
+        # Skapa en canvas för rund indikator
+        self.listening_canvas = tk.Canvas(indicator_frame, width=18, height=18, highlightthickness=0)
+        self.listening_canvas.pack(side=tk.LEFT, padx=2)
+        
+        # Rita en cirkel i canvas (grå som standard)
+        self.listening_indicator = self.listening_canvas.create_oval(2, 2, 16, 16, fill="#CCCCCC", outline="#999999")
+        
+        # Lyssningsstatus-etikett
+        self.listening_status = tk.Label(indicator_frame, text="", font=("Arial", 9))
+        self.listening_status.pack(side=tk.LEFT)
+        
+        # Placera indikatorramen i mitten överst
+        # Vi använder 'place' för exakt positionering i mitten
+        indicator_frame.place(relx=0.5, rely=0, anchor=tk.N, y=5)
     
     def show_help(self):
         """
@@ -135,7 +153,7 @@ class GraphicalInterface:
         """
         # Huvudramen för chatten
         chat_frame = tk.Frame(self.root)
-        chat_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+        chat_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=(40, 10)) # Öka toppaddingen till 40px
         
         # Canvas med scrollbar för att kunna rulla
         self.canvas = tk.Canvas(chat_frame, bg="#f0f0f0")
@@ -390,14 +408,20 @@ class GraphicalInterface:
         
         if is_enabled:
             self.voice_button.config(text="🎤 På", bg="#FF6347")
-
+            
+            # Uppdatera lyssningsstatus för att visa att vi är redo
+            self.listening_status.config(text="Redo")
+            
             # Om röststyrning aktiveras via knapp, läs upp ett bekräftelsemeddelande
             self.voice_interface.say_response(f"Vad kan {self.chatbot.name} hjälpa dig med?")
-
+            
             # Starta röstinmatning direkt efter en kort fördröjning
             self.root.after(400, self.activate_voice_input)  # Vänta 0.4 sekunder efter bekräftelsemeddelandet
         else:
             self.voice_button.config(text="🎤 Av", bg="#CCCCCC")
+            
+            # Återställ lyssningsindikatorn när röst stängs av
+            self.reset_listening_indicator()
 
     def activate_voice_input(self):
         """
@@ -405,12 +429,20 @@ class GraphicalInterface:
         """
         if not self.voice_interface.voice_enabled:
             return
-            
-        # Visa "lyssnar..." text
-        self.display_bot_message("Lyssnar... Säg ditt meddelande.")
+
+        # Ändra statusindikator till röd cirkel
+        self.listening_canvas.itemconfig(self.listening_indicator, fill="#FF0000")  # Röd när den lyssnar
+        self.listening_status.config(text="Lyssnar...")
         
         # Starta en ny tråd för att lyssna efter röst (för att inte blockera GUI)
         threading.Thread(target=self.process_voice_input, daemon=True).start()
+
+    def reset_listening_indicator(self):
+        """
+        Återställer lyssningsindikatorn till inaktivt läge.
+        """
+        self.listening_canvas.itemconfig(self.listening_indicator, fill="#CCCCCC")  # Grå när den inte lyssnar
+        self.listening_status.config(text="")
 
     def process_voice_input(self):
         """
@@ -418,6 +450,9 @@ class GraphicalInterface:
         """
         # Lyssna efter ett kommando
         text = self.voice_interface.listen_for_command()
+
+        # Återställ lyssningsindikatorn när vi är klara med att lyssna
+        self.root.after(0, self.reset_listening_indicator)
         
         if text:
             # Kontrollera om det är ett systemkommando
@@ -459,7 +494,7 @@ class GraphicalInterface:
             
             # Om röststyrning fortfarande är aktiverad, lyssna igen efter en kort fördröjning
             if self.voice_interface.voice_enabled:
-                self.root.after(500, self.activate_voice_input)
+                self.root.after(1000, self.activate_voice_input)
 
     def start_keyword_listening(self):
         """
@@ -469,6 +504,11 @@ class GraphicalInterface:
             while True:
                 # Lyssna efter nyckelord om röststyrning är avstängd
                 if not self.voice_interface.voice_enabled:
+                    # Uppdatera statusindikatorn med Canvas
+                    self.root.after(0, lambda: self.listening_status.config(text="Väntar på nyckelord..."))
+                    # Sätt indikatorn till blå för nyckelordsläge
+                    self.root.after(0, lambda: self.listening_canvas.itemconfig(self.listening_indicator, fill="#A0A0FF"))
+                    
                     command_text = self.voice_interface.listen_for_activation()
                     if command_text:
                         # Kontrollera om det är ett kommando
@@ -479,6 +519,9 @@ class GraphicalInterface:
                             self.voice_interface.voice_enabled = True
                             # Uppdatera UI
                             self.root.after(0, lambda: self.voice_button.config(text="🎤 På", bg="#FF6347"))
+                            # Uppdatera statusindikatorn
+                            self.root.after(0, lambda: self.listening_status.config(text="Aktiverad"))
+                            self.root.after(0, lambda: self.listening_canvas.itemconfig(self.listening_indicator, fill="#00FF00"))
                             # Säg svaret
                             self.root.after(0, lambda r=response: self.voice_interface.say_response(r))
                             # Starta lyssning efter en kort fördröjning
@@ -494,8 +537,14 @@ class GraphicalInterface:
         """
         if self.voice_interface.voice_enabled:
             self.voice_button.config(text="🎤 På", bg="#FF6347")
+            # Återställ lyssningsindikatorn men visa att den är redo
+            self.listening_canvas.itemconfig(self.listening_indicator, fill="#CCCCCC")
+            self.listening_status.config(text="Redo")
         else:
             self.voice_button.config(text="🎤 Av", bg="#CCCCCC")
+            # Återställ lyssningsindikatorn helt
+            self.listening_canvas.itemconfig(self.listening_indicator, fill="#CCCCCC")
+            self.listening_status.config(text="")
 
     # ---------------------------------------------------------------
     # Command Handling Functions
