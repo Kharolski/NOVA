@@ -1,12 +1,26 @@
+"""
+Modul för att hantera systemspecifika åtgärder som att öppna webbläsare, 
+webbplatser och applikationer.
+"""
+
 import os
 import subprocess
 import webbrowser
 import platform
 
+
 class SystemActions:
-    """Klass för att hantera systemåtgärder som att öppna applikationer och webbplatser."""
+    """
+    Hanterar systemåtgärder som att öppna applikationer och webbplatser.
+    
+    Stödjer flera operativsystem: Windows, macOS (Darwin) och Linux.
+    """
     
     def __init__(self):
+        """
+        Initierar SystemActions med operativsystemsdetektering och 
+        en mappning av vanliga applikationer.
+        """
         self.system = platform.system()  # 'Windows', 'Darwin' (macOS), 'Linux'
         
         # Mappa vanliga applikationsnamn till deras faktiska körbara filer på olika plattformar
@@ -30,24 +44,34 @@ class SystemActions:
                 'kalkylatorn': 'Calculator.app',
                 'anteckningar': 'Notes.app',
                 'utforskaren': 'Finder.app',
-                'safari': 'Safari.app'
+                'safari': 'Safari.app',
+                'terminalen': 'Terminal.app',
+                'inställningar': 'System Preferences.app'
             },
             'linux': {
                 'kalkylator': 'gnome-calculator',
                 'kalkylatorn': 'gnome-calculator',
                 'anteckningar': 'gedit',
-                'utforskaren': 'nautilus'
+                'utforskaren': 'nautilus',
+                'terminal': 'gnome-terminal',
+                'inställningar': 'gnome-control-center'
             }
         }
     
     def open_browser(self):
-        """Öppnar standardwebbläsaren."""
+        """
+        Öppnar standardwebbläsaren med Googles startsida.
+        
+        Returns:
+            dict: Resultat med status och meddelande
+        """
         try:
             webbrowser.open("https://www.google.com")
-            return True
+            return {"success": True, "message": "Webbläsaren öppnades framgångsrikt."}
         except Exception as e:
-            print(f"Kunde inte öppna webbläsaren: {e}")
-            return False
+            error_msg = f"Kunde inte öppna webbläsaren: {e}"
+            print(error_msg)
+            return {"success": False, "message": error_msg}
     
     def open_website(self, website):
         """
@@ -57,8 +81,13 @@ class SystemActions:
             website (str): URL:en att öppna
         
         Returns:
-            bool: True om operationen lyckas, annars False
+            dict: Resultat med status och meddelande
         """
+        # Hantera tomma eller None-värden
+        if not website:
+            return {"success": False, "message": "Ingen webbplats angiven."}
+            
+        # Säkerställ att URL:en är korrekt formaterad
         if not website.startswith(('http://', 'https://')):
             # Om ingen protokollprefix, lägg till https://
             if not website.startswith('www.'):
@@ -67,10 +96,11 @@ class SystemActions:
         
         try:
             webbrowser.open(website)
-            return True
+            return {"success": True, "message": f"Öppnade {website} framgångsrikt."}
         except Exception as e:
-            print(f"Kunde inte öppna webbplatsen {website}: {e}")
-            return False
+            error_msg = f"Kunde inte öppna webbplatsen {website}: {e}"
+            print(error_msg)
+            return {"success": False, "message": error_msg}
     
     def open_application(self, app_name):
         """
@@ -80,14 +110,19 @@ class SystemActions:
             app_name (str): Namnet på applikationen att öppna
         
         Returns:
-            bool: True om operationen lyckas, annars False
+            dict: Resultat med status och meddelande
         """
+        # Hantera tomma eller None-värden
+        if not app_name:
+            return {"success": False, "message": "Ingen applikation angiven."}
+            
         app_name = app_name.lower()
         system_key = self.system.lower()
         
         if system_key not in self.common_apps:
-            print(f"Operativsystemet {self.system} stöds inte.")
-            return False
+            error_msg = f"Operativsystemet {self.system} stöds inte."
+            print(error_msg)
+            return {"success": False, "message": error_msg}
         
         # Kontrollera om applikationen finns i listan över kända applikationer
         if app_name in self.common_apps[system_key]:
@@ -100,16 +135,27 @@ class SystemActions:
                     subprocess.Popen(['open', '-a', app_executable])
                 else:  # Linux
                     subprocess.Popen(app_executable, shell=True)
-                return True
+                return {"success": True, "message": f"Applikationen {app_name} öppnades framgångsrikt."}
             except Exception as e:
-                print(f"Kunde inte öppna applikationen {app_name}: {e}")
-                return False
+                error_msg = f"Kunde inte öppna applikationen {app_name}: {e}"
+                print(error_msg)
+                return {"success": False, "message": error_msg}
         else:
-            print(f"Applikationen '{app_name}' finns inte i listan över kända applikationer.")
+            print(f"Applikationen '{app_name}' finns inte i listan över kända applikationer. Provar direkt...")
             # Försök att köra appnamnet direkt
             try:
                 subprocess.Popen(app_name, shell=True)
-                return True
+                return {"success": True, "message": f"Applikationen {app_name} öppnades direkt."}
             except Exception as e:
-                print(f"Kunde inte öppna applikationen {app_name} direkt: {e}")
-                return False
+                error_msg = f"Kunde inte öppna applikationen {app_name} direkt: {e}"
+                print(error_msg)
+                return {"success": False, "message": error_msg}
+                
+    def exit_application(self):
+        """
+        Förbereder för att avsluta applikationen.
+        
+        Returns:
+            dict: Statusinformation
+        """
+        return {"success": True, "message": "Förbereder för att avsluta programmet."}

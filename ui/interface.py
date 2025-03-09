@@ -4,11 +4,11 @@ Modul för grafiskt gränssnitt med tkinter för Nova chatbot.
 
 import tkinter as tk
 from tkinter import messagebox
-from voice import VoiceInterface
 import threading
 import time
-import webbrowser
-from utils.system_actions import SystemActions
+from ui.voice import VoiceInterface
+from ui.system_actions import SystemActions
+
 
 class GraphicalInterface:
     """
@@ -34,7 +34,7 @@ class GraphicalInterface:
         # Lista för att hålla reda på meddelandewidgets
         self.message_widgets = []
         
-        # Skapa röstgränssnitt
+        # Skapa röstgränssnitt och systemåtgärder
         self.voice_interface = VoiceInterface()
         self.system_actions = SystemActions()
         
@@ -94,14 +94,16 @@ class GraphicalInterface:
         about_text = (
             f"{self.chatbot.name} är en enkel chatbot som kan hjälpa dig med "
             f"grundläggande uppgifter som att svara på frågor, visa tid och datum, "
-            f"och söka information på webben.\n\n"
+            f"och utföra enkla systemkommandon.\n\n"
             f"Version: 1.0\n"
             f"Utvecklad som ett övningsprojekt i Python."
         )
         messagebox.showinfo("Om NOVA", about_text)
 
     def exit_application(self):
-        """Avslutar applikationen"""
+        """
+        Avslutar applikationen och rensar temporära filer.
+        """
         print("Avslutar programmet...")
         # Stäng av röststyrning för att rensa temporära filer
         if self.voice_interface.voice_enabled:
@@ -390,7 +392,7 @@ class GraphicalInterface:
             self.voice_button.config(text="🎤 På", bg="#FF6347")
 
             # Om röststyrning aktiveras via knapp, läs upp ett bekräftelsemeddelande
-            self.voice_interface.say_response(f"Vad {self.chatbot.name} kan hjälpa dig medd ?")
+            self.voice_interface.say_response(f"Vad kan {self.chatbot.name} hjälpa dig med?")
 
             # Starta röstinmatning direkt efter en kort fördröjning
             self.root.after(400, self.activate_voice_input)  # Vänta 0.4 sekunder efter bekräftelsemeddelandet
@@ -453,11 +455,11 @@ class GraphicalInterface:
                 self.root.after(3000, self.activate_voice_input)
         else:
             # Om inget text uppfattades, visa ett meddelande
-            self.root.after(0, lambda: self.display_bot_message("Jag kunde inte förstå vad du sa."))
+            #self.root.after(0, lambda: self.display_bot_message("Jag kunde inte förstå vad du sa."))
             
             # Om röststyrning fortfarande är aktiverad, lyssna igen efter en kort fördröjning
             if self.voice_interface.voice_enabled:
-                self.root.after(1500, self.activate_voice_input)
+                self.root.after(500, self.activate_voice_input)
 
     def start_keyword_listening(self):
         """
@@ -484,7 +486,6 @@ class GraphicalInterface:
                             print("Röststyrning är nu aktiverad")
         
         # Starta en separat tråd för bakgrundslyssning
-        import threading
         threading.Thread(target=background_listener, daemon=True).start()
 
     def update_voice_button(self):
@@ -515,7 +516,7 @@ class GraphicalInterface:
         if self.voice_interface.voice_enabled:
             self.voice_interface.say_response(response_text)
         
-        # Utför åtgärden
+        # Utför åtgärden baserat på vår uppdaterade SystemActions-klass
         if action == "activate_voice":
             if not self.voice_interface.voice_enabled:
                 self.toggle_voice()
@@ -524,49 +525,31 @@ class GraphicalInterface:
                 self.toggle_voice()
         elif action == "clear_chat":
             self.clear_chat()
+        elif action == "roll_dice":
+            # Tärningsresultat visas redan i textfältet, inget mer behövs
+            pass
         elif action == "open_browser":
-            self.system_actions.open_browser()
+            result = self.system_actions.open_browser()
+            if not result["success"]:
+                self.display_bot_message(result["message"])
         elif action == "open_website" and extra_data and 'website' in extra_data:
-            self.system_actions.open_website(extra_data['website'])
+            result = self.system_actions.open_website(extra_data['website'])
+            if not result["success"]:
+                self.display_bot_message(result["message"])
         elif action == "open_application" and extra_data and 'app_name' in extra_data:
-            self.system_actions.open_application(extra_data['app_name'])
-        elif action == "show_time":
-            # Tiden visas redan i svaret, inget mer behövs
-            pass
-        elif action == "show_help":
-            # Hjälpinformationen visas redan i svaret, inget mer behövs
-            pass
+            result = self.system_actions.open_application(extra_data['app_name'])
+            if not result["success"]:
+                self.display_bot_message(result["message"])
         elif action == "exit_app":
+            # Använd den nya metoden i SystemActions
+            self.system_actions.exit_application()
             self.exit_application()
-
-    # ---------------------------------------------------------------
-    # Chatbot Response Functions
-    # ---------------------------------------------------------------
-    def get_bot_response(self, user_message):
-        """
-        Får svar från chatboten i en separat tråd.
-        
-        Args:
-            user_message (str): Användarens meddelande
-        """
-        # Få svar från chatboten
-        response = self.chatbot.get_response(user_message)
-        print(f"Svar från get_bot_response: {response}")
-        
-        # Ta bort "tänker"-meddelandet och visa svaret
-        self.root.after(0, lambda: self.remove_thinking_and_display_response(response))
-        
-        # Kontrollera om användaren vill avsluta
-        if self.chatbot.exit_requested:
-            self.root.after(1500, self.exit_program)
+        # Visa endast information - inga ytterligare åtgärder behövs
+        elif action in ["show_time", "show_help", "show_date", "show_weather"]:
+            pass
+        else:
+            self.display_bot_message(f"Okänd åtgärd: {action}")
     
-    # ---------------------------------------------------------------
-    # Webbrowser Response Functions
-    # ---------------------------------------------------------------
-    
-
-
-    
-
+   
     
 
