@@ -4,7 +4,7 @@ NOVA är en avancerad chatbot och virtuell assistent byggd i Python som kombiner
 
 ## Beskrivning
 
-NOVA är en interaktiv virtuell assistent utformad för att hjälpa användare med olika uppgifter genom både text- och röstkommandon. Projektet har utvecklats från en enkel textbaserad chatbot till en mer avancerad assistent med röstaktivering och fler funktioner.
+NOVA är en Enkel Chatbot i Python en virtuell assistent utformad för att hjälpa användare med olika uppgifter genom både text- och röstkommandon. 
 
 ## Nuvarande Funktioner
 
