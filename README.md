@@ -1,10 +1,10 @@
 # **NOVA: Neural Operating Virtual Assistant**
 
-NOVA är en avancerad chatbot och virtuell assistent byggd i Python som kombinerar textbaserad och röststyrd interaktion.
+NOVA är en enkel chatbot och virtuell assistent byggd i Python som kombinerar textbaserad och röststyrd interaktion.
 
 ## Beskrivning
 
-NOVA är en Enkel Chatbot i Python en virtuell assistent utformad för att hjälpa användare med olika uppgifter genom både text- och röstkommandon. 
+NOVA är en Enkel Chatbot i Python en virtuell assistent utformad för att hjälpa användare med olika uppgifter genom både text- och röstkommandon. Projektet ska utvecklas vidare från en enkel till en mer avancerad textbaserad chatbot till en mer avancerad assistent med röstaktivering och fler funktioner.
 
 ## Nuvarande Funktioner
 
